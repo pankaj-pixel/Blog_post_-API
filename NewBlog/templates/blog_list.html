@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blog List</title>
+    <h1>all Blogs</h1>
+</head>
+<body>
+    <h1>Blogs</h1>
+    <ul>
+        {% for blog in blogs %}
+            <li><a href="{% url 'blog-detail' blog.id %}">{{ blog.title }}</a></li>
+        {% empty %}
+            <li>No blog found</li>
+        {% endfor %}
+    </ul>    
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <h1>Blogs availble</h1>
+    <title>{{ blog.title }}</title>
+</head>
+<body>
+    <h1>{{ blog.title }}</h1>
+    <p><strong>Author:</strong> {{ blog.author }}</p>
+    <p><strong>Content:</strong></p>
+    <div>
+        {{ blog.content|linebreaks }}
+    </div>
+    <a href="{% url 'blog_list_view' %}">Back to blog list</a>
+</body>
+</html>
