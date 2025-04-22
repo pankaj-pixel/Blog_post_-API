@@ -1,5 +1,6 @@
 # Blog_post_-API
 RUN APPLICATION : python manage.py runserver
+Admin =  http://127.0.0.1:8000
 API END POINT = http://127.0.0.1:8000/api/
 
 
