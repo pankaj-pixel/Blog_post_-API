@@ -18,7 +18,7 @@ class Blog(models.Model):
 
     Created_at = models.DateTimeField()
 
-    Status = models.CharField(choices=Status)
+    Status = models.CharField(choices=Status,max_length=100)
 
     def __str__(self):
         return self.Blog_title

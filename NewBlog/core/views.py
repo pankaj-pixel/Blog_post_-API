@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from .models import Blog
 from .serializers import BlogSerializer
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 import requests
-
+from django.contrib import messages
 
 
 
@@ -30,8 +30,8 @@ def blogview(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+#@authentication_classes([TokenAuthentication])
+#@permission_classes([IsAuthenticated])
 def BlogById(request, id):
     try:
         blog = Blog.objects.get(id=id)
@@ -58,7 +58,7 @@ def BlogById(request, id):
 
 
 
-API_BASE_URL = 'http://localhost:8000/api/blogs/'  
+API_BASE_URL = 'http://127.0.0.1:8000/api/'
 
 def bloghome(request):
     return render(request, 'home.html')
@@ -69,7 +69,91 @@ def blog_list_view(request):
     return render(request, 'blog_list.html', {'blogs': blogs})
 
 
-def blog_detail_view(request, blog_id):
-    response = requests.get(f"{API_BASE_URL}{blog_id}/")
+def admin_blog_list_view(request):
+    response = requests.get(API_BASE_URL)
+    blogs = response.json() if response.status_code == 200 else []
+
+    return render(request, 'blog_list.html', {'blogs': blogs})
+
+
+
+def admin_blog_detail_view(request, blog_id):
+    response = requests.get(f"{API_BASE_URL}{blog_id}")  
     blog = response.json() if response.status_code == 200 else {}
+    print("Blog Details:", blog)
     return render(request, 'blog_detail.html', {'blog': blog})
+from datetime import datetime
+
+
+
+
+
+def admin_blog_create_view(request):
+    if request.method == 'POST':
+        data = {
+            'Blog_title': request.POST.get('Blog_title'),
+            'Content': request.POST.get('Content'),
+            'Author': request.POST.get('Author'),
+            'Status': request.POST.get('Status'),
+            'Created_at': datetime.now().isoformat()  
+        }
+
+        response = requests.post(API_BASE_URL, json=data)
+
+        if response.status_code in [200, 201]:
+            return redirect('blog_list')
+        else:
+            return render(request, 'blog_create.html', {
+                'error': 'Failed to create blog. Please check the fields and try again.'
+            })
+
+    return render(request, 'blog_create.html')
+
+
+
+
+
+
+
+def admin_blog_update_view(request, blog_id):
+
+    response = requests.get(f"{API_BASE_URL}{blog_id}")
+    blog = response.json() if response.status_code == 200 else {}
+
+    if not blog:
+        return render(request, '404.html', status=404)  
+
+    if request.method == 'POST':
+        data = {
+            'Blog_title': request.POST.get('Blog_title'),
+            'Content': request.POST.get('Content'),
+            'Author': request.POST.get('Author'),
+            'Status': request.POST.get('Status'),
+            'Created_at': blog.get('Created_at')  
+        }
+
+        update_response = requests.put(f"{API_BASE_URL}{blog_id}", json=data)
+        if update_response.status_code == 200:
+            return redirect('blog_list')
+        else:
+            return render(request, 'blog_update.html', {
+                'blog': blog,
+                'error': 'Update failed. Please try again.'
+            })
+
+    return render(request, 'blog_update.html', {'blog': blog})
+
+
+
+
+
+def admin_blog_delete_view(request, blog_id):
+    if request.method == 'POST':
+        response = requests.delete(f"{API_BASE_URL}{blog_id}")
+        
+        if response.status_code == 200:
+            messages.success(request, " Blog deleted successfully.")
+        else:
+            messages.error(request, f"⚠️ Failed to delete blog. Status code: {response.status_code}")
+    
+    return redirect('blog_list')
